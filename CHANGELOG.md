@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Eigenes Icon (hell/dunkel) im Ordner `brand/`, wird ab Home Assistant 2026.3 angezeigt
+
 ## 0.3.0
 
 - 1–3 Schalter pro Regler, schalten gemeinsam
