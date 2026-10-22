@@ -1,0 +1,18 @@
+name: Release
+
+# Release auf GitHub anlegen -> prüft, dass Tag und manifest.json-Version übereinstimmen
+on:
+  release:
+    types: [published]
+
+jobs:
+  version-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Tag gegen manifest.json prüfen
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          MANIFEST=$(python3 -c "import json;print(json.load(open('custom_components/heizregler/manifest.json'))['version'])")
+          echo "Tag: $TAG  Manifest: $MANIFEST"
+          test "$TAG" = "$MANIFEST"

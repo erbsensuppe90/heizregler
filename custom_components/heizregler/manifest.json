@@ -1,0 +1,18 @@
+{
+  "domain": "heizregler",
+  "name": "Heizregler",
+  "codeowners": [
+    "@erbsensuppe90"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "frontend",
+    "http"
+  ],
+  "documentation": "https://github.com/erbsensuppe90/heizregler",
+  "integration_type": "service",
+  "iot_class": "calculated",
+  "issue_tracker": "https://github.com/erbsensuppe90/heizregler/issues",
+  "requirements": [],
+  "version": "0.3.0"
+}

@@ -1,0 +1,58 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Heizregler einrichten",
+        "description": "EIN unter Soll, AUS über Soll + Hysterese. Soll und Hysterese stellst du danach auf der Karte ein.",
+        "data": {
+          "name": "Name (z.B. Raum)",
+          "temperatur_sensor": "Temperatursensor",
+          "schalter": "Schalter / Plugs (1-3)",
+          "sensor_timeout": "Sensor-Timeout"
+        },
+        "data_description": {
+          "sensor_timeout": "Kein Sensorwert seit so vielen Minuten -> Schalter AUS. 0 = deaktiviert."
+        }
+      }
+    },
+    "error": {
+      "schalter_belegt": "Mindestens einer dieser Schalter wird bereits von einem anderen Heizregler genutzt.",
+      "kein_schalter": "Mindestens einen Schalter wählen.",
+      "zu_viele_schalter": "Maximal 3 Schalter pro Regler."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Heizregler ändern",
+        "data": {
+          "temperatur_sensor": "Temperatursensor",
+          "schalter": "Schalter / Plugs (1-3)",
+          "sensor_timeout": "Sensor-Timeout"
+        },
+        "data_description": {
+          "sensor_timeout": "Kein Sensorwert seit so vielen Minuten -> Schalter AUS. 0 = deaktiviert."
+        }
+      }
+    },
+    "error": {
+      "schalter_belegt": "Mindestens einer dieser Schalter wird bereits von einem anderen Heizregler genutzt.",
+      "kein_schalter": "Mindestens einen Schalter wählen.",
+      "zu_viele_schalter": "Maximal 3 Schalter pro Regler."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "state": {
+          "start": "Startet",
+          "heizen": "Heizt",
+          "aus": "Aus",
+          "inaktiv": "Regelung aus",
+          "sensorfehler": "Sensorfehler",
+          "schalterfehler": "Schalter nicht erreichbar"
+        }
+      }
+    }
+  }
+}
