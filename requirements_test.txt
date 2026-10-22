@@ -1,1 +1,3 @@
 pytest-homeassistant-custom-component==0.13.316
+# Integration hängt von "frontend" ab -> Paket wird für Tests gebraucht
+home-assistant-frontend==20260128.6
