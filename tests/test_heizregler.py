@@ -350,7 +350,7 @@ async def test_panel_registriert(hass: HomeAssistant, hass_client) -> None:
     await _basis(hass)
     await _anlegen(hass)
     panel = hass.data[DATA_PANELS]["heizregler"]
-    assert panel.sidebar_title == "Heizregler"
+    assert panel.sidebar_title == "HeatFlow"
     assert panel.config["_panel_custom"]["name"] == "heizregler-panel"
     assert panel.require_admin is False
     client = await hass_client()

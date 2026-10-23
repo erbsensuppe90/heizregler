@@ -1,5 +1,5 @@
 /*
- * Heizregler-Karte (Drehregler)
+ * HeatFlow-Karte (Drehregler)
  * Zeigt einen Heizregler (Integration "heizregler") im Thermostat-Stil:
  * Ist-Temperatur, Plug-Zustand, Soll per Bogen/Knöpfe, Hysterese, Regelung.
  * Die Regel-Logik läuft im HA-Backend, nicht in dieser Karte.
@@ -196,7 +196,7 @@ class HeizreglerCard extends HTMLElement {
       <ha-card>
         <div class="kopf">
           <div>
-            <div class="unter">Heizregler</div>
+            <div class="unter">HeatFlow</div>
             <div class="titel"></div>
           </div>
         </div>
@@ -594,7 +594,7 @@ if (!customElements.get("heizregler-card")) {
   window.customCards = window.customCards || [];
   window.customCards.push({
     type: "heizregler-card",
-    name: "Heizregler",
+    name: "HeatFlow Heizregler",
     description: "Thermostat-Karte: Soll, Hysterese, Regelung und Plug-Status",
     preview: true,
   });

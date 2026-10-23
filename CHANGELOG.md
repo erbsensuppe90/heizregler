@@ -2,7 +2,8 @@
 
 ## 0.4.0
 
-- Eigener Menüpunkt **Heizregler** in der Seitenleiste
+- Neuer Anzeigename **HeatFlow** (Integration, Seitenleiste, Karte). Interner Domain-Name bleibt `heizregler`, bestehende Regler und Entity-IDs bleiben unverändert.
+- Eigener Menüpunkt **HeatFlow** in der Seitenleiste
   - Übersicht aller Regler als Kacheln oder Tabelle (Auswahl wird gemerkt)
   - Kennzahlen: Regler, Regelung an, heizen, Plugs an, Fehler
   - „+ Regler“ öffnet direkt die Einrichtung, „Einstellungen“ das Gerät (nur für Admins sichtbar)

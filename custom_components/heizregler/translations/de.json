@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Heizregler einrichten",
+        "title": "HeatFlow: Heizregler einrichten",
         "description": "EIN unter Soll, AUS über Soll + Hysterese. Soll und Hysterese stellst du danach auf der Karte ein.",
         "data": {
           "name": "Name (z.B. Raum)",
@@ -24,7 +24,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Heizregler ändern",
+        "title": "HeatFlow: Heizregler ändern",
         "data": {
           "temperatur_sensor": "Temperatursensor",
           "schalter": "Schalter / Plugs (1-3)",

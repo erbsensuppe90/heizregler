@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Set up Heizregler",
+        "title": "HeatFlow: set up controller",
         "description": "ON below target, OFF above target + hysteresis. Set target and hysteresis on the card afterwards.",
         "data": {
           "name": "Name (e.g. room)",
@@ -24,7 +24,7 @@
   "options": {
     "step": {
       "init": {
-        "title": "Change Heizregler",
+        "title": "HeatFlow: change controller",
         "data": {
           "temperatur_sensor": "Temperature sensor",
           "schalter": "Switches / plugs (1-3)",

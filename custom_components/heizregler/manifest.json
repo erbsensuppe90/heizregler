@@ -1,6 +1,6 @@
 {
   "domain": "heizregler",
-  "name": "Heizregler",
+  "name": "HeatFlow",
   "codeowners": [
     "@erbsensuppe90"
   ],

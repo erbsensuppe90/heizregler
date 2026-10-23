@@ -1,4 +1,4 @@
-"""Heizregler: Hysterese-Regelung Temperatursensor -> Schalter."""
+"""HeatFlow: Hysterese-Regelung Temperatursensor -> Schalter (Domain: heizregler)."""
 
 from __future__ import annotations
 

@@ -23,7 +23,7 @@ class HeizreglerEntity(Entity):
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, entry.entry_id)},
             name=entry.title,
-            manufacturer="Heizregler",
+            manufacturer="HeatFlow",
             model="Hysterese-Regler",
             sw_version=VERSION,
             entry_type=DeviceEntryType.SERVICE,

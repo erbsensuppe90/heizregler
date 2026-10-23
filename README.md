@@ -1,9 +1,9 @@
-# Heizregler
+# HeatFlow
 
 [![Tests](https://github.com/erbsensuppe90/heizregler/actions/workflows/tests.yml/badge.svg)](https://github.com/erbsensuppe90/heizregler/actions/workflows/tests.yml)
 [![Validate](https://github.com/erbsensuppe90/heizregler/actions/workflows/validate.yml/badge.svg)](https://github.com/erbsensuppe90/heizregler/actions/workflows/validate.yml)
 
-Hysterese-Regler für Home Assistant: ein Temperatursensor steuert 1–3 Schalter/Steckdosen.
+**HeatFlow** ist ein Hysterese-Heizregler für Home Assistant: ein Temperatursensor steuert 1–3 Schalter/Steckdosen.
 Inklusive Thermostat-Karte für das Dashboard.
 
 - **EIN**, wenn Ist < Soll
@@ -29,7 +29,7 @@ Empfehlung zusätzlich: am Shelly/Plug selbst einen Auto-Off-Timer und
 
 1. HACS → ⋮ → **Benutzerdefinierte Repositories**
 2. Repository: `https://github.com/erbsensuppe90/heizregler`, Typ: **Integration**
-3. **Heizregler** suchen → Herunterladen
+3. **HeatFlow** suchen → Herunterladen
 4. Home Assistant neu starten
 5. Browser einmal neu laden (Strg+F5)
 
@@ -41,13 +41,13 @@ Ordner `custom_components/heizregler` nach `/config/custom_components/heizregler
 
 ## Einrichtung
 
-1. Einstellungen → Geräte & Dienste → **Integration hinzufügen** → **Heizregler**
+1. Einstellungen → Geräte & Dienste → **Integration hinzufügen** → **HeatFlow**
 2. Name (z.B. Raum), Temperatursensor, 1–3 Schalter wählen
 3. Pro Raum wiederholen
 
 Nach dem Anlegen ist die Regelung **AUS**. Soll und Hysterese setzen, dann Regelung einschalten.
 
-Nachträglich ändern: Heizregler → Konfigurieren.
+Nachträglich ändern: HeatFlow → Regler → Konfigurieren.
 
 | Option | Bedeutung |
 |---|---|
@@ -57,7 +57,7 @@ Nachträglich ändern: Heizregler → Konfigurieren.
 
 ## Seitenleiste
 
-Nach der Installation erscheint links der Menüpunkt **Heizregler**. Dort siehst du alle Regler:
+Nach der Installation erscheint links der Menüpunkt **HeatFlow**. Dort siehst du alle Regler:
 
 - **Kacheln**: jeder Regler als Thermostat-Karte, direkt bedienbar
 - **Tabelle**: alle Werte auf einen Blick, Klick auf eine Zeile öffnet den Thermostat-Dialog
@@ -66,7 +66,7 @@ Nach der Installation erscheint links der Menüpunkt **Heizregler**. Dort siehst
 
 ## Karte
 
-Dashboard → Bearbeiten → Karte hinzufügen → **Heizregler** → Regler wählen.
+Dashboard → Bearbeiten → Karte hinzufügen → **HeatFlow Heizregler** → Regler wählen.
 
 Die Karte wird von der Integration mitgeliefert, keine Dashboard-Ressource nötig.
 
@@ -80,6 +80,8 @@ Bedienung: Soll per Bogen ziehen oder −/+, Hysterese und Regelung über die Ch
 Klick auf Ist-Temperatur oder Plug öffnet die jeweilige Entity.
 
 ## Entities pro Regler
+
+Der interne Domain-Name bleibt `heizregler`, damit bestehende Regler und Entity-IDs erhalten bleiben.
 
 Beispiel für den Namen "Hobbykeller":
 

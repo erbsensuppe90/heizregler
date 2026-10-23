@@ -1,4 +1,4 @@
-"""Konstanten für Heizregler."""
+"""Konstanten für HeatFlow (Domain: heizregler)."""
 
 from __future__ import annotations
 
@@ -39,7 +39,7 @@ PLATFORMS: list[Platform] = [
 CARD_URL = "/heizregler_static/heizregler-card.js"
 PANEL_URL = "/heizregler_static/heizregler-panel.js"
 PANEL_URL_PATH = "heizregler"
-PANEL_TITLE = "Heizregler"
+PANEL_TITLE = "HeatFlow"
 PANEL_ICON = "mdi:thermostat"
 
 KEY_SOLL = "soll"

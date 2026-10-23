@@ -1,5 +1,5 @@
 /*
- * Heizregler-Panel (Seitenleiste)
+ * HeatFlow-Panel (Seitenleiste)
  * Übersicht aller Heizregler als Kacheln oder Tabelle.
  * Natives HA-Panel: bekommt `hass` direkt vom Frontend, kein Token, kein Iframe.
  * Die Regel-Logik läuft im HA-Backend, nicht hier.
@@ -209,7 +209,7 @@ class HeizreglerPanel extends HTMLElement {
           .umschalter button { flex: 1; }
         }
       </style>
-      <div class="bar"><span class="menu"></span><div class="titel">Heizregler</div></div>
+      <div class="bar"><span class="menu"></span><div class="titel">HeatFlow</div></div>
       <div class="inhalt">
         <div class="kopf">
           <div class="kpis"></div>
