@@ -6,6 +6,12 @@
 **HeatFlow** ist ein Hysterese-Heizregler für Home Assistant: ein Temperatursensor steuert 1–3 Schalter/Steckdosen.
 Inklusive Thermostat-Karte für das Dashboard.
 
+![HeatFlow Seitenleiste, Kachel-Ansicht](docs/images/kacheln.png)
+
+![HeatFlow Seitenleiste, Tabellen-Ansicht](docs/images/tabelle.png)
+
+<sub>Beispieldaten. Kachel- und Tabellen-Ansicht der HeatFlow-Seitenleiste.</sub>
+
 - **EIN**, wenn Ist < Soll
 - **AUS**, wenn Ist > Soll + Hysterese
 - dazwischen: Zustand halten
