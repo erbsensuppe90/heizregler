@@ -54,6 +54,7 @@ Nachträglich ändern: HeatFlow → Regler → Konfigurieren.
 | Temperatursensor | Sensor mit `device_class: temperature` |
 | Schalter / Plugs | 1–3 `switch`- oder `input_boolean`-Entities, schalten gemeinsam |
 | Sensor-Timeout | Minuten ohne Sensorwert bis AUS. `0` = aus. Nur nutzen, wenn der Sensor auch bei gleichem Wert regelmäßig meldet (z.B. **nicht** bei Homematic IP) |
+| Leistungssensoren | optional, 1–3 Sensoren mit `device_class: power`. Werden summiert und angezeigt, beeinflussen die Regelung nicht. Beim Anlegen werden die Leistungssensoren der gewählten Plugs vorgeschlagen |
 
 ## Seitenleiste
 
@@ -61,7 +62,7 @@ Nach der Installation erscheint links der Menüpunkt **HeatFlow**. Dort siehst d
 
 - **Kacheln**: jeder Regler als Thermostat-Karte, direkt bedienbar
 - **Tabelle**: alle Werte auf einen Blick, Klick auf eine Zeile öffnet den Thermostat-Dialog
-- oben Kennzahlen (Regler, Regelung an, heizen, Plugs an, Fehler)
+- oben Kennzahlen (Regler, Regelung an, heizen, Plugs an, Fehler, Leistung gesamt)
 - **+ Regler** öffnet die Einrichtung, **Einstellungen** das Gerät (beides nur für Admins)
 
 ## Karte
@@ -91,6 +92,7 @@ Beispiel für den Namen "Hobbykeller":
 | `number.hobbykeller_soll` | Soll-Temperatur, 5–30 °C, Schritt 0,5 |
 | `number.hobbykeller_hysterese` | Hysterese, 0,1–3 K, Schritt 0,1 |
 | `switch.hobbykeller_regelung` | Regelung an/aus |
+| `sensor.hobbykeller_leistung` | Summe der Leistungssensoren in W (nur wenn welche gewählt sind) |
 | `sensor.hobbykeller_status` | `heizen` / `aus` / `inaktiv` / `sensorfehler` / `schalterfehler` |
 
 Attribute von `sensor.<name>_status`: `ist_temperatur`, `soll`, `hysterese`, `ein_unter`, `aus_ueber`,

@@ -4,7 +4,7 @@
  * Ist-Temperatur, Plug-Zustand, Soll per Bogen/Knöpfe, Hysterese, Regelung.
  * Die Regel-Logik läuft im HA-Backend, nicht in dieser Karte.
  */
-const HZ_VERSION = "0.4.0";
+const HZ_VERSION = "0.4.1";
 
 const STATUS_TEXT = {
   start: "Startet",
@@ -147,6 +147,8 @@ class HeizreglerCard extends HTMLElement {
         .num { font-size: 1.25em; font-weight: 500; display: flex; align-items: center;
                justify-content: center; gap: 4px; min-height: 1.6em; }
         .num ha-icon { --mdc-icon-size: 20px; }
+        .watt { color: var(--secondary-text-color); font-size: 0.85em; min-height: 1em; }
+        .watt:empty { display: none; }
         .dial { position: relative; width: 100%; max-width: 300px; margin: 4px auto 0; }
         svg { display: block; width: 100%; height: auto; touch-action: none; cursor: pointer;
               user-select: none; -webkit-user-select: none; }
@@ -208,6 +210,7 @@ class HeizreglerCard extends HTMLElement {
           <div class="wert" data-more="plug">
             <div class="lbl plug-lbl">Plug</div>
             <div class="num plug-wert"><ha-icon></ha-icon><span></span></div>
+            <div class="watt"></div>
           </div>
         </div>
         <div class="dial">
@@ -252,6 +255,7 @@ class HeizreglerCard extends HTMLElement {
       plugIcon: $(".plug-wert ha-icon"),
       plugText: $(".plug-wert span"),
       plugLbl: $(".plug-lbl"),
+      watt: $(".watt"),
       plugs: $(".plugs"),
       svg: $("svg"),
       track: $(".track"),
@@ -486,6 +490,15 @@ class HeizreglerCard extends HTMLElement {
       e.plugText.textContent = `${anzahlAn}/${plugInfo.length} AN${alleOk ? "" : " !"}`;
     }
     this._plugChips(plugInfo.length > 1 ? plugInfo : []);
+    const hatLeistung = Array.isArray(a.leistung_sensoren) && a.leistung_sensoren.length > 0;
+    if (!hatLeistung) {
+      e.watt.textContent = "";
+    } else if (typeof a.leistung !== "number") {
+      e.watt.textContent = "– W";
+    } else {
+      e.watt.textContent =
+        Math.abs(a.leistung) >= 1000 ? `${this._fmt(a.leistung / 1000, 2)} kW` : `${this._fmt(a.leistung, 0)} W`;
+    }
 
     // Bogen
     const wSoll = this._winkel(isNaN(soll) ? g.min : soll);

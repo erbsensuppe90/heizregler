@@ -13,12 +13,23 @@
         "data_description": {
           "sensor_timeout": "No sensor value for this many minutes -> switch OFF. 0 = disabled."
         }
+      },
+      "leistung": {
+        "title": "HeatFlow: power measurement (optional)",
+        "description": "The selected plugs provide power readings. Keep them so HeatFlow shows the consumption, or clear the field.",
+        "data": {
+          "leistung_sensoren": "Power sensors (optional, 1-3)"
+        },
+        "data_description": {
+          "leistung_sensoren": "Display only, summed up. Does not affect control."
+        }
       }
     },
     "error": {
       "schalter_belegt": "At least one of these switches is already used by another Heizregler.",
       "kein_schalter": "Select at least one switch.",
-      "zu_viele_schalter": "At most 3 switches per controller."
+      "zu_viele_schalter": "At most 3 switches per controller.",
+      "zu_viele_leistung": "At most 3 power sensors per controller."
     }
   },
   "options": {
@@ -28,17 +39,20 @@
         "data": {
           "temperatur_sensor": "Temperature sensor",
           "schalter": "Switches / plugs (1-3)",
-          "sensor_timeout": "Sensor timeout"
+          "sensor_timeout": "Sensor timeout",
+          "leistung_sensoren": "Power sensors (optional, 1-3)"
         },
         "data_description": {
-          "sensor_timeout": "No sensor value for this many minutes -> switch OFF. 0 = disabled."
+          "sensor_timeout": "No sensor value for this many minutes -> switch OFF. 0 = disabled.",
+          "leistung_sensoren": "Display only, summed up. Does not affect control."
         }
       }
     },
     "error": {
       "schalter_belegt": "At least one of these switches is already used by another Heizregler.",
       "kein_schalter": "Select at least one switch.",
-      "zu_viele_schalter": "At most 3 switches per controller."
+      "zu_viele_schalter": "At most 3 switches per controller.",
+      "zu_viele_leistung": "At most 3 power sensors per controller."
     }
   },
   "entity": {

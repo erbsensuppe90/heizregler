@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.1
+
+- Optionale **Leistungssensoren** pro Regler (1–3, `device_class: power`, W/kW)
+  - beim Anlegen werden die Leistungssensoren der gewählten Plugs automatisch vorgeschlagen
+  - nachträglich unter Konfigurieren änderbar
+  - neue Entity `sensor.<name>_leistung` (Summe in W), nur wenn Sensoren gewählt sind
+- Seitenleiste: Kennzahl **Leistung gesamt** über alle Regler, Spalte „Leistung“ in der Tabelle
+- Karte: aktuelle Leistung unter dem Plug-Status
+- Leistung dient nur der Anzeige und beeinflusst die Regelung nicht
+
 ## 0.4.0
 
 - Neuer Anzeigename **HeatFlow** (Integration, Seitenleiste, Karte). Interner Domain-Name bleibt `heizregler`, bestehende Regler und Entity-IDs bleiben unverändert.

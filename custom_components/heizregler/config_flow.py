@@ -8,7 +8,8 @@ import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_NAME
-from homeassistant.core import callback
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.selector import (
     EntitySelector,
     EntitySelectorConfig,
@@ -19,6 +20,7 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    CONF_LEISTUNG,
     CONF_SENSOR,
     CONF_SENSOR_TIMEOUT,
     CONF_SWITCH,
@@ -47,6 +49,39 @@ def _regler_schema() -> dict:
             )
         ),
     }
+
+
+def _leistung_schema() -> dict:
+    return {
+        vol.Optional(CONF_LEISTUNG): EntitySelector(
+            EntitySelectorConfig(domain="sensor", device_class="power", multiple=True)
+        ),
+    }
+
+
+def leistung_vorschlag(hass: HomeAssistant, schalter: list[str]) -> list[str]:
+    """Leistungssensoren auf denselben Geräten wie die Schalter."""
+    reg = er.async_get(hass)
+    treffer: list[str] = []
+    for eid in schalter:
+        eintrag = reg.async_get(eid)
+        if eintrag is None or eintrag.device_id is None:
+            continue
+        for e in er.async_entries_for_device(reg, eintrag.device_id):
+            if (
+                e.domain == "sensor"
+                and (e.device_class or e.original_device_class) == "power"
+                and e.disabled_by is None
+                and e.entity_id not in treffer
+            ):
+                treffer.append(e.entity_id)
+    return treffer
+
+
+def _leistung_pruefen(user_input: dict[str, Any]) -> dict[str, str]:
+    if len(schalter_liste(user_input.get(CONF_LEISTUNG))) > MAX_SCHALTER:
+        return {CONF_LEISTUNG: "zu_viele_leistung"}
+    return {}
 
 
 def _schalter_belegt(
@@ -78,6 +113,9 @@ class HeizreglerConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 2
 
+    _daten: dict[str, Any]
+    _vorschlag: list[str]
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -85,22 +123,51 @@ class HeizreglerConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             errors = _pruefen(self._async_current_entries(), user_input)
             if not errors:
-                return self.async_create_entry(
-                    title=user_input[CONF_NAME],
-                    data={
-                        CONF_SENSOR: user_input[CONF_SENSOR],
-                        CONF_SWITCH: schalter_liste(user_input[CONF_SWITCH]),
-                    },
-                    options={
-                        CONF_SENSOR_TIMEOUT: int(user_input[CONF_SENSOR_TIMEOUT]),
-                    },
+                self._daten = user_input
+                self._vorschlag = leistung_vorschlag(
+                    self.hass, schalter_liste(user_input[CONF_SWITCH])
                 )
+                if self._vorschlag:
+                    return await self.async_step_leistung()
+                return self._anlegen([])
 
         schema = vol.Schema({vol.Required(CONF_NAME): TextSelector(), **_regler_schema()})
         return self.async_show_form(
             step_id="user",
             data_schema=self.add_suggested_values_to_schema(schema, user_input or {}),
             errors=errors,
+        )
+
+    async def async_step_leistung(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Optional: Leistungssensoren der Plugs übernehmen."""
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            errors = _leistung_pruefen(user_input)
+            if not errors:
+                return self._anlegen(schalter_liste(user_input.get(CONF_LEISTUNG)))
+        return self.async_show_form(
+            step_id="leistung",
+            data_schema=self.add_suggested_values_to_schema(
+                vol.Schema(_leistung_schema()),
+                user_input or {CONF_LEISTUNG: self._vorschlag},
+            ),
+            errors=errors,
+        )
+
+    def _anlegen(self, leistung: list[str]) -> ConfigFlowResult:
+        d = self._daten
+        return self.async_create_entry(
+            title=d[CONF_NAME],
+            data={
+                CONF_SENSOR: d[CONF_SENSOR],
+                CONF_SWITCH: schalter_liste(d[CONF_SWITCH]),
+            },
+            options={
+                CONF_SENSOR_TIMEOUT: int(d[CONF_SENSOR_TIMEOUT]),
+                CONF_LEISTUNG: leistung,
+            },
         )
 
     @staticmethod
@@ -121,25 +188,32 @@ class HeizreglerOptionsFlow(OptionsFlow):
                 self.hass.config_entries.async_entries(DOMAIN),
                 user_input,
                 ausser=self.config_entry.entry_id,
-            )
+            ) or _leistung_pruefen(user_input)
             if not errors:
                 return self.async_create_entry(
                     data={
                         CONF_SENSOR: user_input[CONF_SENSOR],
                         CONF_SWITCH: schalter_liste(user_input[CONF_SWITCH]),
                         CONF_SENSOR_TIMEOUT: int(user_input[CONF_SENSOR_TIMEOUT]),
+                        CONF_LEISTUNG: schalter_liste(user_input.get(CONF_LEISTUNG)),
                     }
                 )
 
+        cfg = entry_config(self.config_entry)
+        schalter = schalter_liste(cfg[CONF_SWITCH])
+        vorschlag = {
+            **cfg,
+            CONF_SWITCH: schalter,
+            # noch nie gesetzt -> Leistungssensoren der Plugs vorschlagen
+            CONF_LEISTUNG: schalter_liste(cfg[CONF_LEISTUNG])
+            if CONF_LEISTUNG in cfg
+            else leistung_vorschlag(self.hass, schalter),
+        }
         return self.async_show_form(
             step_id="init",
             data_schema=self.add_suggested_values_to_schema(
-                vol.Schema(_regler_schema()),
-                user_input
-                or {
-                    **entry_config(self.config_entry),
-                    CONF_SWITCH: schalter_liste(entry_config(self.config_entry)[CONF_SWITCH]),
-                },
+                vol.Schema({**_regler_schema(), **_leistung_schema()}),
+                user_input or vorschlag,
             ),
             errors=errors,
         )

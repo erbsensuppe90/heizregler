@@ -10,6 +10,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    ATTR_UNIT_OF_MEASUREMENT,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
     STATE_ON,
@@ -34,6 +35,7 @@ from homeassistant.helpers.start import async_at_started
 from homeassistant.util import dt as dt_util
 
 from .const import (
+    CONF_LEISTUNG,
     CONF_SENSOR,
     CONF_SENSOR_TIMEOUT,
     CONF_SWITCH,
@@ -93,6 +95,7 @@ class HeizreglerController:
         self.sensor_timeout: int = int(
             cfg.get(CONF_SENSOR_TIMEOUT, DEFAULT_SENSOR_TIMEOUT)
         )
+        self.leistung_ids: list[str] = schalter_liste(cfg.get(CONF_LEISTUNG))
 
         # Werte werden von den Entities beim Start wiederhergestellt
         self.soll: float = DEFAULT_SOLL
@@ -121,6 +124,13 @@ class HeizreglerController:
                 self.hass, [self.sensor_id, *self.switch_ids], self._handle_state_change
             )
         )
+        if self.leistung_ids:
+            # Leistung nur anzeigen, nie regeln -> nur Entities aktualisieren
+            self._unsubs.append(
+                async_track_state_change_event(
+                    self.hass, self.leistung_ids, self._handle_leistung_change
+                )
+            )
         self._unsubs.append(
             async_track_time_interval(self.hass, self._handle_interval, PRUEF_INTERVALL)
         )
@@ -213,6 +223,22 @@ class HeizreglerController:
             else:
                 ok.append(eid)
         return ok, fehler
+
+    @callback
+    def _handle_leistung_change(self, _event: Event[EventStateChangedData]) -> None:
+        self._notify()
+
+    @property
+    def leistung(self) -> float | None:
+        """Summe der Leistungssensoren in W. None = keiner konfiguriert/gültig."""
+        summe = 0.0
+        gueltig = False
+        for eid in self.leistung_ids:
+            wert = _leistung_w(self.hass.states.get(eid))
+            if wert is not None:
+                summe += wert
+                gueltig = True
+        return round(summe, 1) if gueltig else None
 
     @property
     def schalter_an(self) -> int:
@@ -325,3 +351,20 @@ def _temperatur(state: State | None) -> float | None:
         return float(state.state)
     except (TypeError, ValueError):
         return None
+
+
+_FAKTOR_W = {"W": 1.0, "kW": 1000.0, "MW": 1_000_000.0, "mW": 0.001}
+
+
+def _leistung_w(state: State | None) -> float | None:
+    """Leistung eines Sensors in Watt (W/kW/MW/mW), sonst None."""
+    if state is None or state.state in _UNGUELTIG:
+        return None
+    try:
+        wert = float(state.state)
+    except (TypeError, ValueError):
+        return None
+    faktor = _FAKTOR_W.get(state.attributes.get(ATTR_UNIT_OF_MEASUREMENT) or "W")
+    if faktor is None:
+        return None
+    return wert * faktor

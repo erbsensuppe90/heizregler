@@ -8,11 +8,12 @@ from enum import StrEnum
 from homeassistant.const import Platform
 
 DOMAIN = "heizregler"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 
 CONF_SENSOR = "temperatur_sensor"
 CONF_SWITCH = "schalter"
 CONF_SENSOR_TIMEOUT = "sensor_timeout"
+CONF_LEISTUNG = "leistung_sensoren"
 
 DEFAULT_SOLL = 21.0
 DEFAULT_HYSTERESE = 0.5
@@ -46,6 +47,7 @@ KEY_SOLL = "soll"
 KEY_HYSTERESE = "hysterese"
 KEY_REGELUNG = "regelung"
 KEY_STATUS = "status"
+KEY_LEISTUNG = "leistung"
 
 
 class Status(StrEnum):

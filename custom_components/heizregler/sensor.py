@@ -4,13 +4,26 @@ from __future__ import annotations
 
 from typing import Any
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
+from homeassistant.const import UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import HeizreglerConfigEntry
-from .const import DOMAIN, KEY_HYSTERESE, KEY_REGELUNG, KEY_SOLL, KEY_STATUS, Status
+from .const import (
+    DOMAIN,
+    KEY_HYSTERESE,
+    KEY_LEISTUNG,
+    KEY_REGELUNG,
+    KEY_SOLL,
+    KEY_STATUS,
+    Status,
+)
 from .entity import HeizreglerEntity
 
 
@@ -19,7 +32,11 @@ async def async_setup_entry(
     entry: HeizreglerConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    async_add_entities([HeizreglerStatusSensor(entry.runtime_data, KEY_STATUS, "Status")])
+    c = entry.runtime_data
+    entities: list[SensorEntity] = [HeizreglerStatusSensor(c, KEY_STATUS, "Status")]
+    if c.leistung_ids:
+        entities.append(HeizreglerLeistungSensor(c, KEY_LEISTUNG, "Leistung"))
+    async_add_entities(entities)
 
 
 class HeizreglerStatusSensor(HeizreglerEntity, SensorEntity):
@@ -37,6 +54,7 @@ class HeizreglerStatusSensor(HeizreglerEntity, SensorEntity):
             "hysterese_entity",
             "regelung_entity",
             "climate_entity",
+            "leistung_sensoren",
         }
     )
 
@@ -70,4 +88,24 @@ class HeizreglerStatusSensor(HeizreglerEntity, SensorEntity):
             "hysterese_entity": _id("number", KEY_HYSTERESE),
             "regelung_entity": _id("switch", KEY_REGELUNG),
             "climate_entity": _id("climate", "climate"),
+            "leistung": c.leistung,
+            "leistung_sensoren": c.leistung_ids,
         }
+
+
+class HeizreglerLeistungSensor(HeizreglerEntity, SensorEntity):
+    """Summe der gewählten Leistungssensoren (nur Anzeige)."""
+
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_suggested_display_precision = 0
+    _attr_icon = "mdi:flash"
+
+    @property
+    def available(self) -> bool:
+        return self.controller.leistung is not None
+
+    @property
+    def native_value(self) -> float | None:
+        return self.controller.leistung

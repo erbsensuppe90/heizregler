@@ -4,7 +4,7 @@
  * Natives HA-Panel: bekommt `hass` direkt vom Frontend, kein Token, kein Iframe.
  * Die Regel-Logik läuft im HA-Backend, nicht hier.
  */
-const HZP_VERSION = "0.4.0";
+const HZP_VERSION = "0.4.1";
 
 const STATUS_TEXT = {
   start: "Startet",
@@ -106,6 +106,8 @@ class HeizreglerPanel extends HTMLElement {
           letzteZeit: a.letzte_schaltung,
           plugs,
           climate: a.climate_entity,
+          leistung: typeof a.leistung === "number" ? a.leistung : null,
+          hatLeistung: liste(a.leistung_sensoren).length > 0,
           deviceId: ent ? ent.device_id : null,
         };
       })
@@ -123,6 +125,13 @@ class HeizreglerPanel extends HTMLElement {
   _fmt(w, n = 1) {
     if (w === null || w === undefined || w === "" || isNaN(Number(w))) return "–";
     return Number(w).toLocaleString(this._lang(), { minimumFractionDigits: n, maximumFractionDigits: n });
+  }
+
+  _watt(w) {
+    if (w === null || w === undefined || isNaN(Number(w))) return "–";
+    const v = Number(w);
+    if (Math.abs(v) >= 1000) return `${this._fmt(v / 1000, 2)} kW`;
+    return `${this._fmt(v, 0)} W`;
   }
 
   _zeit(iso) {
@@ -172,6 +181,7 @@ class HeizreglerPanel extends HTMLElement {
         .kpi .l { font-size: 0.8em; color: var(--secondary-text-color); }
         .kpi.heiz .z { color: ${FARBE_HEIZ}; }
         .kpi.fehler .z { color: ${FARBE_FEHLER}; }
+        .kpi.leistung .z { color: ${FARBE_HEIZ}; }
         .umschalter { display: inline-flex; border: 1px solid var(--divider-color); border-radius: 10px; overflow: hidden; }
         .umschalter button { border: 0; background: none; padding: 8px 14px; cursor: pointer; font: inherit;
                              color: var(--secondary-text-color); }
@@ -275,12 +285,19 @@ class HeizreglerPanel extends HTMLElement {
     const aktiv = regler.filter((r) => r.regelungAn).length;
     const plugsAn = regler.reduce((s, r) => s + r.plugs.filter((p) => p.an).length, 0);
     const plugsGes = regler.reduce((s, r) => s + r.plugs.length, 0);
+    const mitLeistung = regler.filter((r) => r.hatLeistung);
+    const leistungGes = mitLeistung.reduce((s, r) => s + (r.leistung || 0), 0);
+    const leistungKpi = mitLeistung.length
+      ? `<div class="kpi leistung" title="Summe aus ${mitLeistung.length} von ${regler.length} Reglern mit Leistungsmessung">
+           <div class="z">${this._watt(leistungGes)}</div><div class="l">Leistung gesamt</div></div>`
+      : "";
     this._kpis.innerHTML = `
       <div class="kpi"><div class="z">${regler.length}</div><div class="l">Regler</div></div>
       <div class="kpi"><div class="z">${aktiv}</div><div class="l">Regelung an</div></div>
       <div class="kpi heiz"><div class="z">${heizen}</div><div class="l">heizen</div></div>
       <div class="kpi"><div class="z">${plugsAn}/${plugsGes}</div><div class="l">Plugs an</div></div>
-      <div class="kpi ${fehler ? "fehler" : ""}"><div class="z">${fehler}</div><div class="l">mit Fehler</div></div>`;
+      <div class="kpi ${fehler ? "fehler" : ""}"><div class="z">${fehler}</div><div class="l">mit Fehler</div></div>
+      ${leistungKpi}`;
 
     // Leerzustand
     if (!regler.length) {
@@ -370,13 +387,14 @@ class HeizreglerPanel extends HTMLElement {
           <td class="num">${this._fmt(r.hyst)} K</td>
           <td class="num">${this._fmt(r.ausUeber)} °C</td>
           <td class="plugs">${plugs}</td>
+          <td class="num">${r.hatLeistung ? this._watt(r.leistung) : "–"}</td>
           <td class="klein">${letzte}</td>
         </tr>`;
       })
       .join("");
     this._tab.innerHTML = `<table>
       <thead><tr><th>Regler</th><th>Status</th><th>Regelung</th><th class="num">Ist</th><th class="num">Soll</th>
-      <th class="num">Hysterese</th><th class="num">AUS über</th><th>Plugs</th><th>Letzte Schaltung</th></tr></thead>
+      <th class="num">Hysterese</th><th class="num">AUS über</th><th>Plugs</th><th class="num">Leistung</th><th>Letzte Schaltung</th></tr></thead>
       <tbody>${zeilen}</tbody></table>`;
   }
 }

@@ -357,3 +357,144 @@ async def test_panel_registriert(hass: HomeAssistant, hass_client) -> None:
     resp = await client.get(PANEL_URL)
     assert resp.status == 200
     assert "heizregler-panel" in await resp.text()
+
+
+# --------------------------------------------------------------------------- Leistung (0.4.1)
+
+LEISTUNG1 = "sensor.plug1_power"
+LEISTUNG2 = "sensor.plug2_power"
+LEISTUNG_ENT = "sensor.hobbykeller_leistung"
+
+
+def _watt(hass, eid, wert, einheit="W"):
+    hass.states.async_set(eid, wert, {"device_class": "power", "unit_of_measurement": einheit})
+
+
+async def test_ohne_leistung_kein_leistungssensor(hass: HomeAssistant) -> None:
+    await _basis(hass)
+    await _anlegen(hass)
+    assert hass.states.get(LEISTUNG_ENT) is None
+    attrs = hass.states.get(STATUS).attributes
+    assert attrs["leistung"] is None
+    assert attrs["leistung_sensoren"] == []
+
+
+async def test_leistung_summe_und_einheiten(hass: HomeAssistant) -> None:
+    await _basis(hass)
+    _watt(hass, LEISTUNG1, "1200")
+    _watt(hass, LEISTUNG2, "0.8", "kW")
+    await _anlegen(hass, switch=[PLUG, PLUG2])
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_SENSOR: SENSOR, CONF_SWITCH: [PLUG, PLUG2], CONF_SENSOR_TIMEOUT: 0,
+         "leistung_sensoren": [LEISTUNG1, LEISTUNG2]},
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+
+    st = hass.states.get(LEISTUNG_ENT)
+    assert float(st.state) == 2000.0
+    assert st.attributes["unit_of_measurement"] == "W"
+    assert hass.states.get(STATUS).attributes["leistung"] == 2000.0
+
+    _watt(hass, LEISTUNG1, "0")
+    await hass.async_block_till_done()
+    assert float(hass.states.get(LEISTUNG_ENT).state) == 800.0
+
+    # ein Sensor weg -> Summe der übrigen
+    hass.states.async_set(LEISTUNG2, STATE_UNAVAILABLE)
+    await hass.async_block_till_done()
+    assert float(hass.states.get(LEISTUNG_ENT).state) == 0.0
+
+    # alle weg -> unavailable
+    hass.states.async_set(LEISTUNG1, STATE_UNAVAILABLE)
+    await hass.async_block_till_done()
+    assert hass.states.get(LEISTUNG_ENT).state == STATE_UNAVAILABLE
+
+
+async def test_leistung_beeinflusst_regelung_nicht(hass: HomeAssistant) -> None:
+    await _basis(hass)
+    _watt(hass, LEISTUNG1, "0")
+    await _anlegen(hass)
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_SENSOR: SENSOR, CONF_SWITCH: [PLUG], CONF_SENSOR_TIMEOUT: 0,
+         "leistung_sensoren": [LEISTUNG1]},
+    )
+    await hass.async_block_till_done()
+    await _regelung(hass, True)
+    assert _plug(hass) == STATE_ON
+    _watt(hass, LEISTUNG1, "abc")
+    await hass.async_block_till_done()
+    assert _plug(hass) == STATE_ON
+    assert hass.states.get(STATUS).state == "heizen"
+
+
+async def _plug_mit_geraet(hass, schalter_uid, leistung_uid):
+    """Schalter + Leistungssensor auf einem gemeinsamen Gerät registrieren."""
+    from homeassistant.helpers import device_registry as dr, entity_registry as er
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    fremd = MockConfigEntry(domain="test")
+    fremd.add_to_hass(hass)
+    dev = dr.async_get(hass).async_get_or_create(
+        config_entry_id=fremd.entry_id, identifiers={("test", schalter_uid)}
+    )
+    reg = er.async_get(hass)
+    sw = reg.async_get_or_create("switch", "test", schalter_uid, device_id=dev.id)
+    pw = reg.async_get_or_create(
+        "sensor", "test", leistung_uid, device_id=dev.id, original_device_class="power"
+    )
+    reg.async_get_or_create("sensor", "test", leistung_uid + "_e", device_id=dev.id,
+                            original_device_class="energy")
+    hass.states.async_set(sw.entity_id, STATE_OFF)
+    _watt(hass, pw.entity_id, "1500")
+    return sw.entity_id, pw.entity_id
+
+
+async def test_flow_schlaegt_leistung_vom_plug_vor(hass: HomeAssistant) -> None:
+    await _basis(hass)
+    sw, pw = await _plug_mit_geraet(hass, "plugA", "plugA_power")
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"name": "Hobbykeller", CONF_SENSOR: SENSOR, CONF_SWITCH: [sw], CONF_SENSOR_TIMEOUT: 0},
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "leistung"
+    vorschlag = None
+    for key in result["data_schema"].schema:
+        if str(key) == "leistung_sensoren":
+            vorschlag = key.description["suggested_value"]
+    assert vorschlag == [pw]  # nur power, nicht energy
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"leistung_sensoren": [pw]}
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["options"]["leistung_sensoren"] == [pw]
+    await hass.async_block_till_done()
+    assert float(hass.states.get(LEISTUNG_ENT).state) == 1500.0
+
+
+async def test_flow_leistung_abgewaehlt(hass: HomeAssistant) -> None:
+    await _basis(hass)
+    sw, _pw = await _plug_mit_geraet(hass, "plugB", "plugB_power")
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"name": "Hobbykeller", CONF_SENSOR: SENSOR, CONF_SWITCH: [sw], CONF_SENSOR_TIMEOUT: 0},
+    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["options"]["leistung_sensoren"] == []
+    await hass.async_block_till_done()
+    assert hass.states.get(LEISTUNG_ENT) is None
