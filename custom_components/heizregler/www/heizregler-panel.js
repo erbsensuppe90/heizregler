@@ -4,7 +4,7 @@
  * Natives HA-Panel: bekommt `hass` direkt vom Frontend, kein Token, kein Iframe.
  * Die Regel-Logik läuft im HA-Backend, nicht hier.
  */
-const HZP_VERSION = "0.4.1";
+const HZP_VERSION = "0.4.2";
 
 const STATUS_TEXT = {
   start: "Startet",

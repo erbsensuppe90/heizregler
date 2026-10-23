@@ -27,6 +27,7 @@ from homeassistant.core import (
     split_entity_id,
 )
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.event import (
     async_track_state_change_event,
     async_track_time_interval,
@@ -36,6 +37,7 @@ from homeassistant.util import dt as dt_util
 
 from .const import (
     CONF_LEISTUNG,
+    CONF_LEISTUNG_AUTO,
     CONF_SENSOR,
     CONF_SENSOR_TIMEOUT,
     CONF_SWITCH,
@@ -95,7 +97,15 @@ class HeizreglerController:
         self.sensor_timeout: int = int(
             cfg.get(CONF_SENSOR_TIMEOUT, DEFAULT_SENSOR_TIMEOUT)
         )
-        self.leistung_ids: list[str] = schalter_liste(cfg.get(CONF_LEISTUNG))
+        gewaehlt = schalter_liste(cfg.get(CONF_LEISTUNG))
+        self.leistung_auto: bool = bool(cfg.get(CONF_LEISTUNG_AUTO, True))
+        # Nichts gewählt + Automatik an -> Leistungssensoren der Plug-Geräte nehmen
+        self.leistung_ids: list[str] = (
+            gewaehlt
+            if gewaehlt or not self.leistung_auto
+            else leistung_vorschlag(hass, self.switch_ids)
+        )
+        self.leistung_automatisch: bool = not gewaehlt and bool(self.leistung_ids)
 
         # Werte werden von den Entities beim Start wiederhergestellt
         self.soll: float = DEFAULT_SOLL
@@ -368,3 +378,41 @@ def _leistung_w(state: State | None) -> float | None:
     if faktor is None:
         return None
     return wert * faktor
+
+
+def ist_leistungssensor(hass: HomeAssistant, entity_id: str) -> bool:
+    """Sensor liefert Leistung (device_class power oder Einheit W/kW/MW/mW)."""
+    if not entity_id.startswith("sensor."):
+        return False
+    st = hass.states.get(entity_id)
+    if st is not None:
+        if st.attributes.get("device_class") == "power":
+            return True
+        if st.attributes.get(ATTR_UNIT_OF_MEASUREMENT) in _FAKTOR_W:
+            return True
+    eintrag = er.async_get(hass).async_get(entity_id)
+    if eintrag is not None:
+        if (eintrag.device_class or eintrag.original_device_class) == "power":
+            return True
+        if eintrag.unit_of_measurement in _FAKTOR_W:
+            return True
+    return False
+
+
+def leistung_vorschlag(hass: HomeAssistant, schalter: list[str]) -> list[str]:
+    """Leistungssensoren auf denselben Geräten wie die Schalter."""
+    reg = er.async_get(hass)
+    treffer: list[str] = []
+    for eid in schalter:
+        eintrag = reg.async_get(eid)
+        if eintrag is None or eintrag.device_id is None:
+            continue
+        for e in er.async_entries_for_device(reg, eintrag.device_id):
+            if (
+                e.domain == "sensor"
+                and e.disabled_by is None
+                and e.entity_id not in treffer
+                and ist_leistungssensor(hass, e.entity_id)
+            ):
+                treffer.append(e.entity_id)
+    return treffer

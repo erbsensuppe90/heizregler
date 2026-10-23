@@ -4,7 +4,7 @@
  * Ist-Temperatur, Plug-Zustand, Soll per Bogen/Knöpfe, Hysterese, Regelung.
  * Die Regel-Logik läuft im HA-Backend, nicht in dieser Karte.
  */
-const HZ_VERSION = "0.4.1";
+const HZ_VERSION = "0.4.2";
 
 const STATUS_TEXT = {
   start: "Startet",

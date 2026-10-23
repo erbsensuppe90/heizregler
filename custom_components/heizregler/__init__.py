@@ -14,6 +14,7 @@ from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CARD_URL,
+    CONF_LEISTUNG_AUTO,
     CONF_SWITCH,
     DOMAIN,
     PANEL_ICON,
@@ -76,8 +77,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: HeizreglerConfigEntry) 
 
 
 async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """v1 (ein Schalter als String) -> v2 (Liste von Schaltern)."""
-    if entry.version > 2:
+    """v1: Schalter-String -> Liste. v2: Leistungs-Automatik ergänzen."""
+    if entry.version > 3:
         return False
     if entry.version == 1:
         data = {**entry.data}
@@ -87,6 +88,11 @@ async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if CONF_SWITCH in options:
             options[CONF_SWITCH] = schalter_liste(options[CONF_SWITCH])
         hass.config_entries.async_update_entry(entry, data=data, options=options, version=2)
+    if entry.version == 2:
+        options = {**entry.options}
+        # 0.4.1 hat "leer" auch gespeichert, wenn nie gefragt wurde -> Automatik an
+        options.setdefault(CONF_LEISTUNG_AUTO, True)
+        hass.config_entries.async_update_entry(entry, options=options, version=3)
     return True
 
 

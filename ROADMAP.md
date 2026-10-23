@@ -1,10 +1,9 @@
 # Roadmap
 
-## 0.4.2 (geplant)
+## 0.4.2 (umgesetzt)
 
-- [ ] **Icon in HACS**: In Home Assistant (Geräte & Dienste) wird das Icon aus `brand/` angezeigt,
-      in der HACS-Liste steht aber "icon not available". Ursache prüfen (HACS lädt Icons vermutlich
-      nicht über den lokalen `brand/`-Ordner) und beheben.
+- [x] Icon in HACS: geklärt, Fehler liegt in HACS (hacs/integration#5402), README-Hinweis
+- [x] Leistung automatisch vom Plug-Gerät, robustere Leistungsauswahl
 
 ## Später
 

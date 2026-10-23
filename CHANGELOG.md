@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.2
+
+- **Leistung automatisch:** Ist kein Leistungssensor gewählt, nimmt HeatFlow die Leistungssensoren
+  der Plug-Geräte automatisch (abschaltbar über „Leistung automatisch vom Plug übernehmen“).
+  Bestehende Regler bekommen die Automatik beim Update.
+- Leistungsauswahl zeigt alle Sensoren; akzeptiert werden `device_class: power` oder Einheit W/kW/MW/mW.
+  Falsche Sensoren werden beim Speichern abgelehnt.
+- Neues Attribut `leistung_automatisch` am Status-Sensor
+- README: Hinweis zum fehlenden Icon in der HACS-Liste (Fehler in HACS, nicht in HeatFlow)
+
 ## 0.4.1
 
 - Optionale **Leistungssensoren** pro Regler (1–3, `device_class: power`, W/kW)

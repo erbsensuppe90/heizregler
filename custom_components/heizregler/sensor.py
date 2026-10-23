@@ -90,6 +90,7 @@ class HeizreglerStatusSensor(HeizreglerEntity, SensorEntity):
             "climate_entity": _id("climate", "climate"),
             "leistung": c.leistung,
             "leistung_sensoren": c.leistung_ids,
+            "leistung_automatisch": c.leistung_automatisch,
         }
 
 

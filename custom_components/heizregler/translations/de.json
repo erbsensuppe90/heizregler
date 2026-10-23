@@ -18,10 +18,12 @@
         "title": "HeatFlow: Leistungsmessung (optional)",
         "description": "Die gewählten Plugs liefern Leistungswerte. Übernehmen, damit HeatFlow den Verbrauch anzeigt, oder Feld leeren.",
         "data": {
-          "leistung_sensoren": "Leistungssensoren (optional, 1-3)"
+          "leistung_sensoren": "Leistungssensoren (optional, 1-3)",
+          "leistung_auto": "Leistung automatisch vom Plug übernehmen"
         },
         "data_description": {
-          "leistung_sensoren": "Nur Anzeige, wird summiert. Hat keinen Einfluss auf die Regelung."
+          "leistung_sensoren": "Optional. Sensoren mit W/kW, werden summiert. Nur Anzeige, kein Einfluss auf die Regelung.",
+          "leistung_auto": "Wenn oben nichts gewählt ist, werden die Leistungssensoren der Plug-Geräte automatisch verwendet."
         }
       }
     },
@@ -29,7 +31,8 @@
       "schalter_belegt": "Mindestens einer dieser Schalter wird bereits von einem anderen Heizregler genutzt.",
       "kein_schalter": "Mindestens einen Schalter wählen.",
       "zu_viele_schalter": "Maximal 3 Schalter pro Regler.",
-      "zu_viele_leistung": "Maximal 3 Leistungssensoren pro Regler."
+      "zu_viele_leistung": "Maximal 3 Leistungssensoren pro Regler.",
+      "kein_leistungssensor": "Mindestens ein gewählter Sensor liefert keine Leistung (W/kW)."
     }
   },
   "options": {
@@ -40,11 +43,13 @@
           "temperatur_sensor": "Temperatursensor",
           "schalter": "Schalter / Plugs (1-3)",
           "sensor_timeout": "Sensor-Timeout",
-          "leistung_sensoren": "Leistungssensoren (optional, 1-3)"
+          "leistung_sensoren": "Leistungssensoren (optional, 1-3)",
+          "leistung_auto": "Leistung automatisch vom Plug übernehmen"
         },
         "data_description": {
           "sensor_timeout": "Kein Sensorwert seit so vielen Minuten -> Schalter AUS. 0 = deaktiviert.",
-          "leistung_sensoren": "Nur Anzeige, wird summiert. Hat keinen Einfluss auf die Regelung."
+          "leistung_sensoren": "Optional. Sensoren mit W/kW, werden summiert. Nur Anzeige, kein Einfluss auf die Regelung.",
+          "leistung_auto": "Wenn oben nichts gewählt ist, werden die Leistungssensoren der Plug-Geräte automatisch verwendet."
         }
       }
     },
@@ -52,7 +57,8 @@
       "schalter_belegt": "Mindestens einer dieser Schalter wird bereits von einem anderen Heizregler genutzt.",
       "kein_schalter": "Mindestens einen Schalter wählen.",
       "zu_viele_schalter": "Maximal 3 Schalter pro Regler.",
-      "zu_viele_leistung": "Maximal 3 Leistungssensoren pro Regler."
+      "zu_viele_leistung": "Maximal 3 Leistungssensoren pro Regler.",
+      "kein_leistungssensor": "Mindestens ein gewählter Sensor liefert keine Leistung (W/kW)."
     }
   },
   "entity": {

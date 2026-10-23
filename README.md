@@ -35,6 +35,12 @@ Empfehlung zusätzlich: am Shelly/Plug selbst einen Auto-Off-Timer und
 
 Updates erscheinen danach unter Einstellungen → Updates.
 
+> **Icon in HACS:** In Home Assistant (Geräte & Dienste) wird das HeatFlow-Icon angezeigt, in der
+> HACS-Liste steht dagegen „icon not available“. Das ist eine bekannte Einschränkung von HACS bei
+> Integrationen mit eigenem `brand/`-Ordner (HA ≥ 2026.3), siehe
+> [hacs/integration#5402](https://github.com/hacs/integration/issues/5402). Sobald HACS das unterstützt,
+> erscheint das Icon automatisch.
+
 ## Installation manuell
 
 Ordner `custom_components/heizregler` nach `/config/custom_components/heizregler` kopieren, HA neu starten.
@@ -54,7 +60,8 @@ Nachträglich ändern: HeatFlow → Regler → Konfigurieren.
 | Temperatursensor | Sensor mit `device_class: temperature` |
 | Schalter / Plugs | 1–3 `switch`- oder `input_boolean`-Entities, schalten gemeinsam |
 | Sensor-Timeout | Minuten ohne Sensorwert bis AUS. `0` = aus. Nur nutzen, wenn der Sensor auch bei gleichem Wert regelmäßig meldet (z.B. **nicht** bei Homematic IP) |
-| Leistungssensoren | optional, 1–3 Sensoren mit `device_class: power`. Werden summiert und angezeigt, beeinflussen die Regelung nicht. Beim Anlegen werden die Leistungssensoren der gewählten Plugs vorgeschlagen |
+| Leistungssensoren | optional, 1–3 Sensoren mit `device_class: power` oder Einheit W/kW. Werden summiert und angezeigt, beeinflussen die Regelung nicht |
+| Leistung automatisch | Standard an: Ist oben nichts gewählt, werden die Leistungssensoren der Plug-Geräte automatisch genommen |
 
 ## Seitenleiste
 
@@ -96,7 +103,8 @@ Beispiel für den Namen "Hobbykeller":
 | `sensor.hobbykeller_status` | `heizen` / `aus` / `inaktiv` / `sensorfehler` / `schalterfehler` |
 
 Attribute von `sensor.<name>_status`: `ist_temperatur`, `soll`, `hysterese`, `ein_unter`, `aus_ueber`,
-`phase`, `fehler`, `letzte_aktion`, `letzte_schaltung`, `schalter`, `schalter_an`.
+`phase`, `fehler`, `letzte_aktion`, `letzte_schaltung`, `schalter`, `schalter_an`, `leistung`,
+`leistung_sensoren`, `leistung_automatisch`.
 
 ## Entwicklung
 

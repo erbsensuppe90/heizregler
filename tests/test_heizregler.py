@@ -336,7 +336,8 @@ async def test_migration_v1(hass: HomeAssistant) -> None:
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
-    assert entry.version == 2
+    assert entry.version == 3
+    assert entry.options["leistung_auto"] is True
     assert entry.data[CONF_SWITCH] == [PLUG]
     await _regelung(hass, True)
     assert _plug(hass) == STATE_ON
@@ -493,8 +494,97 @@ async def test_flow_leistung_abgewaehlt(hass: HomeAssistant) -> None:
         result["flow_id"],
         {"name": "Hobbykeller", CONF_SENSOR: SENSOR, CONF_SWITCH: [sw], CONF_SENSOR_TIMEOUT: 0},
     )
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"leistung_auto": False}
+    )
     assert result["type"] is FlowResultType.CREATE_ENTRY
     assert result["options"]["leistung_sensoren"] == []
+    assert result["options"]["leistung_auto"] is False
+    await hass.async_block_till_done()
+    assert hass.states.get(LEISTUNG_ENT) is None
+
+
+
+# --------------------------------------------------------------------------- 0.4.2
+
+
+async def test_flow_feld_leer_automatik_nimmt_plug_leistung(hass: HomeAssistant) -> None:
+    await _basis(hass)
+    sw, pw = await _plug_mit_geraet(hass, "plugC", "plugC_power")
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        {"name": "Hobbykeller", CONF_SENSOR: SENSOR, CONF_SWITCH: [sw], CONF_SENSOR_TIMEOUT: 0},
+    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert float(hass.states.get(LEISTUNG_ENT).state) == 1500.0
+    attrs = hass.states.get(STATUS).attributes
+    assert attrs["leistung_sensoren"] == [pw]
+    assert attrs["leistung_automatisch"] is True
+
+
+async def test_migration_v2_bestehender_regler_bekommt_automatik(hass: HomeAssistant) -> None:
+    """Fall Büro: unter 0.4.1 ohne Leistung angelegt -> nach Update automatisch."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    await _basis(hass)
+    sw, pw = await _plug_mit_geraet(hass, "plugD", "plugD_power")
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        title="Hobbykeller",
+        version=2,
+        data={CONF_SENSOR: SENSOR, CONF_SWITCH: [sw]},
+        options={CONF_SENSOR_TIMEOUT: 0, "leistung_sensoren": []},
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+    assert entry.version == 3
+    assert float(hass.states.get(LEISTUNG_ENT).state) == 1500.0
+    assert hass.states.get(STATUS).attributes["leistung_sensoren"] == [pw]
+
+
+async def test_sensor_ohne_device_class_aber_watt(hass: HomeAssistant) -> None:
+    await _basis(hass)
+    hass.states.async_set("sensor.ohne_klasse", "300", {"unit_of_measurement": "W"})
+    hass.states.async_set("sensor.keine_leistung", "5", {"unit_of_measurement": "°C"})
+    await _anlegen(hass)
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_SENSOR: SENSOR, CONF_SWITCH: [PLUG], CONF_SENSOR_TIMEOUT: 0,
+         "leistung_sensoren": ["sensor.keine_leistung"], "leistung_auto": True},
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"leistung_sensoren": "kein_leistungssensor"}
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_SENSOR: SENSOR, CONF_SWITCH: [PLUG], CONF_SENSOR_TIMEOUT: 0,
+         "leistung_sensoren": ["sensor.ohne_klasse"], "leistung_auto": True},
+    )
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+    assert float(hass.states.get(LEISTUNG_ENT).state) == 300.0
+    assert hass.states.get(STATUS).attributes["leistung_automatisch"] is False
+
+
+async def test_automatik_aus_feld_leer_keine_leistung(hass: HomeAssistant) -> None:
+    await _basis(hass)
+    sw, _pw = await _plug_mit_geraet(hass, "plugE", "plugE_power")
+    await _anlegen(hass, switch=[PLUG])
+    entry = hass.config_entries.async_entries(DOMAIN)[0]
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        {CONF_SENSOR: SENSOR, CONF_SWITCH: [sw], CONF_SENSOR_TIMEOUT: 0,
+         "leistung_sensoren": [], "leistung_auto": False},
+    )
     await hass.async_block_till_done()
     assert hass.states.get(LEISTUNG_ENT) is None
