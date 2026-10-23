@@ -8,7 +8,7 @@ from enum import StrEnum
 from homeassistant.const import Platform
 
 DOMAIN = "heizregler"
-VERSION = "0.4.2"
+VERSION = "0.4.3"
 
 CONF_SENSOR = "temperatur_sensor"
 CONF_SWITCH = "schalter"

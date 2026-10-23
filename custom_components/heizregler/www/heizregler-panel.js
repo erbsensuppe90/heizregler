@@ -4,7 +4,7 @@
  * Natives HA-Panel: bekommt `hass` direkt vom Frontend, kein Token, kein Iframe.
  * Die Regel-Logik läuft im HA-Backend, nicht hier.
  */
-const HZP_VERSION = "0.4.2";
+const HZP_VERSION = "0.4.3";
 
 const STATUS_TEXT = {
   start: "Startet",
@@ -145,16 +145,32 @@ class HeizreglerPanel extends HTMLElement {
   }
 
   _ladeKarte() {
-    if (customElements.get("heizregler-card") || this._karteLaedt) return;
-    const url = this._panel && this._panel.config && this._panel.config.card_url;
-    if (!url) return;
+    if (customElements.get("heizregler-card")) return;
+    // Sobald die Karte definiert ist (egal von wo geladen): Platzhalter ersetzen
+    if (!this._wartetAufKarte) {
+      this._wartetAufKarte = true;
+      customElements.whenDefined("heizregler-card").then(() => {
+        this._karteFehler = null;
+        this._render();
+      });
+    }
+    if (this._karteLaedt) return;
+    const url =
+      (this._panel && this._panel.config && this._panel.config.card_url) ||
+      `/heizregler_static/heizregler-card.js?v=${HZP_VERSION}`;
     this._karteLaedt = true;
     import(url)
-      .catch(() => {})
+      .catch((err) => {
+        console.error("HeatFlow: Karte konnte nicht geladen werden", url, err);
+        this._karteFehler = String((err && err.message) || err);
+        // Rückfallebene: als normales Modul-Script einhängen
+        const sc = document.createElement("script");
+        sc.type = "module";
+        sc.src = url;
+        document.head.appendChild(sc);
+      })
       .finally(() => {
         this._karteLaedt = false;
-        this._cards.clear();
-        if (this._grid) this._grid.innerHTML = "";
         this._render();
       });
   }
@@ -323,6 +339,7 @@ class HeizreglerPanel extends HTMLElement {
 
   _renderKacheln(regler, admin) {
     const karteDa = !!customElements.get("heizregler-card");
+    if (!karteDa) this._ladeKarte();
     const ids = new Set(regler.map((r) => r.id));
     for (const [id, z] of this._cards) {
       if (!ids.has(id)) {
@@ -332,6 +349,12 @@ class HeizreglerPanel extends HTMLElement {
     }
     regler.forEach((r, i) => {
       let z = this._cards.get(r.id);
+      if (z && karteDa && !z.card) {
+        // Platzhalter durch echte Karte ersetzen
+        z.el.remove();
+        this._cards.delete(r.id);
+        z = undefined;
+      }
       if (!z) {
         const el = document.createElement("div");
         el.className = "zelle";
@@ -343,7 +366,9 @@ class HeizreglerPanel extends HTMLElement {
         } else {
           const p = document.createElement("div");
           p.className = "klein";
-          p.textContent = `${r.name}: Karte wird geladen …`;
+          p.textContent = this._karteFehler
+            ? `${r.name}: Karte konnte nicht geladen werden (${this._karteFehler}). Seite neu laden (Strg+F5).`
+            : `${r.name}: Karte wird geladen …`;
           el.appendChild(p);
         }
         const links = document.createElement("div");

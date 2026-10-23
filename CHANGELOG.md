@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.3
+
+- Fix Seitenleiste: Kacheln blieben bei „Karte wird geladen …“ hängen, wenn die Karte später als das
+  Panel geladen wurde. Platzhalter werden jetzt ersetzt, sobald die Karte verfügbar ist.
+- Kann die Karte nicht geladen werden, zeigt das Panel den Grund an und versucht einen zweiten Ladeweg.
+
 ## 0.4.2
 
 - **Leistung automatisch:** Ist kein Leistungssensor gewählt, nimmt HeatFlow die Leistungssensoren
