@@ -55,6 +55,15 @@ Nachträglich ändern: Heizregler → Konfigurieren.
 | Schalter / Plugs | 1–3 `switch`- oder `input_boolean`-Entities, schalten gemeinsam |
 | Sensor-Timeout | Minuten ohne Sensorwert bis AUS. `0` = aus. Nur nutzen, wenn der Sensor auch bei gleichem Wert regelmäßig meldet (z.B. **nicht** bei Homematic IP) |
 
+## Seitenleiste
+
+Nach der Installation erscheint links der Menüpunkt **Heizregler**. Dort siehst du alle Regler:
+
+- **Kacheln**: jeder Regler als Thermostat-Karte, direkt bedienbar
+- **Tabelle**: alle Werte auf einen Blick, Klick auf eine Zeile öffnet den Thermostat-Dialog
+- oben Kennzahlen (Regler, Regelung an, heizen, Plugs an, Fehler)
+- **+ Regler** öffnet die Einrichtung, **Einstellungen** das Gerät (beides nur für Admins)
+
 ## Karte
 
 Dashboard → Bearbeiten → Karte hinzufügen → **Heizregler** → Regler wählen.

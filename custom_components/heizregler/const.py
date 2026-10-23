@@ -8,7 +8,7 @@ from enum import StrEnum
 from homeassistant.const import Platform
 
 DOMAIN = "heizregler"
-VERSION = "0.3.1"
+VERSION = "0.4.0"
 
 CONF_SENSOR = "temperatur_sensor"
 CONF_SWITCH = "schalter"
@@ -37,6 +37,10 @@ PLATFORMS: list[Platform] = [
 ]
 
 CARD_URL = "/heizregler_static/heizregler-card.js"
+PANEL_URL = "/heizregler_static/heizregler-panel.js"
+PANEL_URL_PATH = "heizregler"
+PANEL_TITLE = "Heizregler"
+PANEL_ICON = "mdi:thermostat"
 
 KEY_SOLL = "soll"
 KEY_HYSTERESE = "hysterese"

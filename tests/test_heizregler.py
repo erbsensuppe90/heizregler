@@ -340,3 +340,20 @@ async def test_migration_v1(hass: HomeAssistant) -> None:
     assert entry.data[CONF_SWITCH] == [PLUG]
     await _regelung(hass, True)
     assert _plug(hass) == STATE_ON
+
+
+async def test_panel_registriert(hass: HomeAssistant, hass_client) -> None:
+    from homeassistant.components.frontend import DATA_PANELS
+
+    from custom_components.heizregler.const import PANEL_URL
+
+    await _basis(hass)
+    await _anlegen(hass)
+    panel = hass.data[DATA_PANELS]["heizregler"]
+    assert panel.sidebar_title == "Heizregler"
+    assert panel.config["_panel_custom"]["name"] == "heizregler-panel"
+    assert panel.require_admin is False
+    client = await hass_client()
+    resp = await client.get(PANEL_URL)
+    assert resp.status == 200
+    assert "heizregler-panel" in await resp.text()
